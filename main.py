@@ -6,6 +6,10 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import requests
+import os
+
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY")
+MOVIEDB_URL= "https://api.themoviedb.org/3/search/movie"
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
@@ -29,11 +33,16 @@ class Movie(db.Model):
 
 db.create_all()
 
-
+# Forms
 class RateMovieForm(FlaskForm):
     rating = StringField("Your Rating Out of 10 e.g. 7.5")
     review = StringField("Your Review")
     submit = SubmitField("Done")
+
+
+class AddMovieForm(FlaskForm):
+    title = StringField("Movie Title", validators=[DataRequired()])
+    submit = SubmitField("Add Movie")
 
 
 @app.route("/")
@@ -43,6 +52,23 @@ def home():
     """
     all_movies = Movie.query.all()
     return render_template("index.html", movies=all_movies)
+
+
+@app.route("/add", methods=["GET", "POST"])
+def add_movie():
+    """
+    Renders the add form, adds movie to db and redirects back to
+    index.html page.
+    """
+    form = AddMovieForm()
+
+    if form.validate_on_submit():
+        movie_title = form.title.data
+        response = requests.get(MOVIEDB_URL, params={"api_key":TMDB_API_KEY, "query": movie_title})
+        data = response.json()["results"]
+        return render_template("select.html", options=data)
+
+    return render_template('add.html', form=form)
 
 
 @app.route("/edit", methods=["GET", "POST"])

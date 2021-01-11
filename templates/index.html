@@ -14,7 +14,11 @@
 {% block content %}
 <div class="container">
   <h1 class="heading">My Top 10 Movies</h1>
+  {% if movies == []: %}
+  <p class="description">No movies listed.</p>
+  {% else %}
   <p class="description">These are my all time favorite movies.</p>
+  {% endif %}
    
   {% for movie in movies %}
   <div class="card" >
@@ -40,7 +44,7 @@
   {% endfor %}
 </div>
 <div class="container text-center add">
-<a href="#" class="button">Add Movie</a>
+<a href="{{ url_for('add_movie') }}" class="button">Add Movie</a>
 </div>
 
 {% endblock %}
