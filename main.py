@@ -29,19 +29,12 @@ class Movie(db.Model):
 
 db.create_all()
 
-# Test Record
-# new_movie = Movie(
-#     title="Phone Booth",
-#     year=2002,
-#     description="Publicist Stuart Shepard finds himself trapped in a phone booth, pinned down by an extortionist's sniper rifle. Unable to leave or receive outside help, Stuart's negotiation with the caller leads to a jaw-dropping climax.",
-#     rating=7.3,
-#     ranking=10,
-#     review="My favorite character was the caller.",
-#     img_url="https://image.tmdb.org/t/p/w500/tjrX2oWRCM3Tvarz38zlZM7Uc10.jpg"
-# )
 
-# db.session.add(new_movie)
-# db.session.commit()
+class RateMovieForm(FlaskForm):
+    rating = StringField("Your Rating Out of 10 e.g. 7.5")
+    review = StringField("Your Review")
+    submit = SubmitField("Done")
+
 
 @app.route("/")
 def home():
@@ -50,6 +43,24 @@ def home():
     """
     all_movies = Movie.query.all()
     return render_template("index.html", movies=all_movies)
+
+
+@app.route("/edit", methods=["GET", "POST"])
+def rate_movie():
+    """
+    Renders a form to allow the user to edit a movie's rating and review.
+    Redirects back to index.html page.
+    """
+    form = RateMovieForm()
+    movie_id = request.args.get("id")
+    movie = Movie.query.get(movie_id)
+    if form.validate_on_submit():
+        movie.rating = float(form.rating.data)
+        movie.review = form.review.data
+        db.session.commit()
+        return redirect(url_for('home'))
+    return render_template("edit.html", movie=movie, form=form)
+
 
 
 if __name__ == '__main__':
