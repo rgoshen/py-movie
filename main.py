@@ -1,4 +1,3 @@
-from enum import unique
 from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
@@ -9,7 +8,9 @@ import requests
 import os
 
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY")
-MOVIEDB_URL= "https://api.themoviedb.org/3/search/movie"
+MOVIE_DB_SEARCH_URL = "https://api.themoviedb.org/3/search/movie"
+MOVIE_DB_INFO_URL = "https://api.themoviedb.org/3/movie"
+MOVIE_DB_IMAGE_URL = "https://image.tmdb.org/t/p/w500"
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
@@ -64,7 +65,7 @@ def add_movie():
 
     if form.validate_on_submit():
         movie_title = form.title.data
-        response = requests.get(MOVIEDB_URL, params={"api_key":TMDB_API_KEY, "query": movie_title})
+        response = requests.get(MOVIE_DB_SEARCH_URL, params={"api_key":TMDB_API_KEY, "query": movie_title})
         data = response.json()["results"]
         return render_template("select.html", options=data)
 
@@ -75,7 +76,7 @@ def add_movie():
 def find_movie():
     movie_api_id = int(request.args.get("id"))
     if movie_api_id:
-        movie_api_url = f"{MOVIEDB_URL}/{movie_api_id}"
+        movie_api_url = f"{MOVIE_DB_INFO_URL}/{movie_api_id}"
         response = requests.get(movie_api_url, params={"api_key": TMDB_API_KEY})
         data = response.json()
         new_movie = Movie(
@@ -86,7 +87,7 @@ def find_movie():
         )
         db.session.add(new_movie)
         db.session.commit()
-        return redirect(url_for("home"))
+        return redirect(url_for("rate_movie", id=new_movie.id))
 
 
 @app.route("/edit", methods=["GET", "POST"])
