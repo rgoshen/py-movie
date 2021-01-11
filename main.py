@@ -71,6 +71,24 @@ def add_movie():
     return render_template('add.html', form=form)
 
 
+@app.route("/find")
+def find_movie():
+    movie_api_id = int(request.args.get("id"))
+    if movie_api_id:
+        movie_api_url = f"{MOVIEDB_URL}/{movie_api_id}"
+        response = requests.get(movie_api_url, params={"api_key": TMDB_API_KEY})
+        data = response.json()
+        new_movie = Movie(
+            title=data["title"],
+            year=data["release_date"].split("-")[0],
+            img_url=f"{MOVIE_DB_IMAGE_URL}{data['poster_path']}",
+            description=data["overview"]
+        )
+        db.session.add(new_movie)
+        db.session.commit()
+        return redirect(url_for("home"))
+
+
 @app.route("/edit", methods=["GET", "POST"])
 def rate_movie():
     """
