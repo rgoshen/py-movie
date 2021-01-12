@@ -50,8 +50,15 @@ class AddMovieForm(FlaskForm):
 def home():
     """
     Reads all records from movies.db and renders the start page.
+    This will also sort based on user given rating.
     """
-    all_movies = Movie.query.all()
+    all_movies = Movie.query.order_by(Movie.rating).all()
+
+    for i in range(len(all_movies)):
+        #This line gives each movie a new ranking reversed from their order in all_movies
+        all_movies[i].ranking = len(all_movies) - i
+    db.session.commit()
+
     return render_template("index.html", movies=all_movies)
 
 
